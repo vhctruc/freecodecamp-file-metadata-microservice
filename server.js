@@ -1,3 +1,14 @@
+/**
+ * File Metadata Microservice
+ * FreeCodeCamp Backend Development and APIs Project
+ * 
+ * Author: trucvhc
+ * GitHub: https://github.com/trucvhc
+ * 
+ * This microservice analyzes uploaded files and returns metadata
+ * including filename, MIME type, and file size in bytes.
+ */
+
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -189,6 +200,7 @@ app.get('/api/*', (req, res) => {
 // Start the server
 app.listen(PORT, () => {
   console.log('🚀 File Metadata Microservice running on port', PORT);
+  console.log('👨‍💻 Developed by trucvhc | GitHub: @trucvhc');
   console.log('📡 API endpoints available:');
   console.log('   POST /api/fileanalyse (file upload)');
   console.log('   GET  /api/health (health check)');
