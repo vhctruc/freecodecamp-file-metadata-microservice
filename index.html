@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Metadata Microservice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        
+        .api-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .api-endpoint {
+            background: #333;
+            color: #00ff88;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            border: 1px solid #555;
+        }
+        
+        .upload-section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .upload-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+        
+        .file-input {
+            width: 100%;
+            padding: 60px 20px;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            color: #666;
+        }
+        
+        .file-input:hover {
+            border-color: #764ba2;
+            background: #e8f4fd;
+        }
+        
+        .file-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .file-input-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            color: #667eea;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .file-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .btn-upload {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-upload:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .selected-file {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .file-details {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .file-label {
+            font-weight: bold;
+            color: #155724;
+        }
+        
+        .file-value {
+            color: #333;
+            word-break: break-all;
+        }
+        
+        .result-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 25px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            border: 1px solid #333;
+            min-height: 100px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .test-section {
+            background: #e8f4fd;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-test {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .btn-test:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(40, 167, 69, 0.3);
+        }
+        
+        .loading {
+            color: #667eea;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #f5c6cb;
+            margin-top: 20px;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #c3e6cb;
+            margin-top: 20px;
+        }
+        
+        .examples {
+            background: #fff3cd;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .example-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .example-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .example-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .example-code {
+            font-family: 'Courier New', monospace;
+            color: #666;
+            font-size: 0.9rem;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .file-types {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f4fd;
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .file-types h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .file-types ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .file-types li {
+            padding: 5px 0;
+            color: #666;
+        }
+        
+        .file-types li::before {
+            content: "✅ ";
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📁 File Metadata Microservice</h1>
+        <p class="subtitle">Upload files and get metadata information</p>
+        
+        <div class="api-section">
+            <h3>API Endpoint</h3>
+            <div class="api-endpoint">POST /api/fileanalyse</div>
+            <p><strong>Upload a file</strong> and receive metadata including <strong>name</strong>, <strong>type</strong>, and <strong>size</strong> in bytes</p>
+        </div>
+        
+        <div class="upload-section">
+            <h3>📤 Upload File</h3>
+            <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
+                <div class="file-input-wrapper">
+                    <input 
+                        type="file" 
+                        id="upfile" 
+                        name="upfile" 
+                        class="file-input"
+                        required
+                    >
+                    <div class="file-input-label">
+                        <span class="file-icon">📁</span>
+                        <div>Click to select a file or drag and drop</div>
+                        <div style="font-size: 0.9rem; margin-top: 5px;">Any file type supported</div>
+                    </div>
+                </div>
+                
+                <div id="selectedFileInfo" style="display: none;"></div>
+                
+                <button type="submit" class="btn-upload" id="uploadBtn">
+                    🚀 Analyse File
+                </button>
+            </form>
+            
+            <div class="file-types">
+                <h4>📋 Supported File Types</h4>
+                <ul>
+                    <li>Images: .jpg, .png, .gif, .svg</li>
+                    <li>Documents: .pdf, .doc, .txt, .rtf</li>
+                    <li>Archives: .zip, .rar, .tar, .gz</li>
+                    <li>Videos: .mp4, .avi, .mov, .mkv</li>
+                    <li>And many more...</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🧪 Quick Tests</h3>
+            <div class="test-buttons">
+                <button class="btn-test" onclick="createTestFile('text')">📄 Test Text File</button>
+                <button class="btn-test" onclick="createTestFile('json')">📋 Test JSON File</button>
+                <button class="btn-test" onclick="clearResults()">🗑️ Clear Results</button>
+            </div>
+        </div>
+        
+        <div class="result-section">
+            <h3>📊 API Response</h3>
+            <div id="apiResult" class="result">Select and upload a file above to see the metadata response...</div>
+        </div>
+        
+        <div class="examples">
+            <h3>📋 API Response Examples</h3>
+            <div class="example-item">
+                <div class="example-title">1. Text File Upload</div>
+                <div class="example-code">File: document.txt (1.2 KB)
+
+Response:
+{
+  "name": "document.txt",
+  "type": "text/plain", 
+  "size": 1200
+}</div>
+            </div>
+            <div class="example-item">
+                <div class="example-title">2. Image File Upload</div>
+                <div class="example-code">File: photo.jpg (500 KB)
+
+Response:
+{
+  "name": "photo.jpg",
+  "type": "image/jpeg",
+  "size": 512000
+}</div>
+            </div>
+            <div class="example-item">
+                <div class="example-title">3. PDF Document Upload</div>
+                <div class="example-code">File: report.pdf (2.5 MB)
+
+Response:
+{
+  "name": "report.pdf", 
+  "type": "application/pdf",
+  "size": 2621440
+}</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Built with Express.js & Multer | File upload and metadata analysis</p>
+        </div>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('upfile');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const apiResult = document.getElementById('apiResult');
+        const selectedFileInfo = document.getElementById('selectedFileInfo');
+        
+        // Handle file input change
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                showSelectedFile(file);
+            } else {
+                hideSelectedFile();
+            }
+        });
+        
+        // Handle form submission
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            if (!file) {
+                showError('Please select a file first');
+                return;
+            }
+            
+            // Disable button and show loading
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '⏳ Analysing...';
+            apiResult.innerHTML = '<span class="loading">Uploading and analysing file...</span>';
+            
+            try {
+                const formData = new FormData();
+                formData.append('upfile', file);
+                
+                const response = await fetch('/api/fileanalyse', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                // Display API response
+                apiResult.textContent = JSON.stringify(data, null, 2);
+                
+                if (response.ok) {
+                    showSuccess(`File "${file.name}" analysed successfully!`);
+                } else {
+                    showError(data.error || 'Upload failed');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                apiResult.textContent = 'Error: Unable to connect to server';
+                showError('Unable to connect to server');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '🚀 Analyse File';
+            }
+        });
+        
+        // Show selected file information
+        function showSelectedFile(file) {
+            const fileSize = formatFileSize(file.size);
+            selectedFileInfo.innerHTML = `
+                <div class="selected-file">
+                    <h4>📁 Selected File</h4>
+                    <div class="file-details">
+                        <span class="file-label">Name:</span>
+                        <span class="file-value">${file.name}</span>
+                        <span class="file-label">Type:</span>
+                        <span class="file-value">${file.type || 'Unknown'}</span>
+                        <span class="file-label">Size:</span>
+                        <span class="file-value">${fileSize} (${file.size} bytes)</span>
+                        <span class="file-label">Modified:</span>
+                        <span class="file-value">${new Date(file.lastModified).toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+            selectedFileInfo.style.display = 'block';
+        }
+        
+        // Hide selected file information
+        function hideSelectedFile() {
+            selectedFileInfo.style.display = 'none';
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Create test file
+        function createTestFile(type) {
+            let content, filename, mimeType;
+            
+            if (type === 'text') {
+                content = 'This is a test text file created for testing the File Metadata Microservice.\n\nIt contains multiple lines and some special characters: !@#$%^&*()';
+                filename = 'test-document.txt';
+                mimeType = 'text/plain';
+            } else if (type === 'json') {
+                content = JSON.stringify({
+                    name: 'Test JSON File',
+                    purpose: 'Testing File Metadata Microservice',
+                    timestamp: new Date().toISOString(),
+                    data: [1, 2, 3, 4, 5],
+                    nested: { key: 'value', number: 42 }
+                }, null, 2);
+                filename = 'test-data.json';
+                mimeType = 'application/json';
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
+            const file = new File([blob], filename, { type: mimeType });
+            
+            // Create a new FileList with our test file
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            
+            // Trigger change event
+            fileInput.dispatchEvent(new Event('change'));
+        }
+        
+        // Clear results
+        function clearResults() {
+            fileInput.value = '';
+            hideSelectedFile();
+            apiResult.textContent = 'Select and upload a file above to see the metadata response...';
+            const messages = document.querySelectorAll('.error, .success');
+            messages.forEach(msg => msg.remove());
+        }
+        
+        // Show error message
+        function showError(message) {
+            const existing = document.querySelector('.error');
+            if (existing) existing.remove();
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            uploadForm.appendChild(errorDiv);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const existing = document.querySelector('.success');
+            if (existing) existing.remove();
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            uploadForm.appendChild(successDiv);
+        }
+        
+        // Handle drag and drop
+        const fileInputWrapper = document.querySelector('.file-input-wrapper');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileInputWrapper.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight(e) {
+            fileInputWrapper.classList.add('highlight');
+        }
+        
+        function unhighlight(e) {
+            fileInputWrapper.classList.remove('highlight');
+        }
+        
+        fileInputWrapper.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        }
+    </script>
+</body>
+</html>
