@@ -370,6 +370,9 @@ GET /api/test-upload-form
 
 ## 📝 Author
 
+**trucvhc** - Data Engineer  
+- GitHub: [@trucvhc](https://github.com/trucvhc)
+
 Created for FreeCodeCamp Back End Development and APIs Certification
 
 ## 📄 License
